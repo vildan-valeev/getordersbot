@@ -152,39 +152,5 @@ async def process_gender(message: types.Message, state: FSMContext):
     await state.finish()
 
 
-class Nav(StatesGroup):
-    S1 = State()  # Will be represented in storage as 'Form:name'
-    S2 = State()  # Will be represented in storage as 'Form:age'
-    S3 = State()  # Will be represented in storage as 'Form:gender'
-
-
-btn_next = types.InlineKeyboardButton('След', callback_data="next")
-btn_lust = types.InlineKeyboardButton('Назад', callback_data="last")
-
-
-@dp.message_handler(commands='nav')
-async def nav(message: types.Message):
-    nav = types.InlineKeyboardMarkup().add(btn_next)
-    answer1 = await message.answer("Первое сообщение.!\n\nНажми далее чтоб получить следующее сообщение",
-                                   reply_markup=nav)
-    print('answer1', answer1)
-
-    # await Nav.S1.set()
-
-
-@dp.callback_query_handler(text_contains="next")
-async def buying_pear(callback: CallbackQuery):
-    nav2 = types.InlineKeyboardMarkup(resize_keyboard=True).add(btn_lust, btn_next)
-
-    await callback.message.edit_text("Второе сообщение.!\n\nНажми далее чтоб получить следующее сообщение",
-                             reply_markup=nav2)
-
-@dp.callback_query_handler(text_contains="lust")
-async def buying_pear(callback: CallbackQuery):
-    nav2 = types.InlineKeyboardMarkup(resize_keyboard=True).add(btn_lust, btn_next)
-
-    await callback.message.edit_text("Первое сообщение.!\n\nНажми далее чтоб получить следующее сообщение",
-                             reply_markup=nav2)
-
 if __name__ == '__main__':
     executor.start_polling(dp, skip_updates=True)
