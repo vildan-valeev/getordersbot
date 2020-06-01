@@ -2,16 +2,24 @@ import logging
 
 import aiogram.utils.markdown as md
 from aiogram import Bot, Dispatcher, types
+from aiogram.bot import api
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher.filters.state import State, StatesGroup
-from aiogram.types import ParseMode
+from aiogram.types import ParseMode, CallbackQuery
 from aiogram.utils import executor
 
 logging.basicConfig(level=logging.INFO)
 
-API_TOKEN = '1038341676:AAFoKRLUjvXc_PMPxA-ETIqtRmPs89w_dl0'
+# конфиг
+API_TOKEN = '997719198:AAHzfPmw4AGgi3SkfCAHTFSO3jyejEmJ9UQ'
+admin_id = 617953383
+bot_id = 997719198
+
+# прокси
+patched_url = 'https://telegg.ru/orig/bot{token}/{method}'
+setattr(api, 'API_URL', patched_url)
 
 bot = Bot(token=API_TOKEN)
 
@@ -90,7 +98,7 @@ async def process_age(message: types.Message, state: FSMContext):
     markup.add("Не знаю")
 
     await message.answer("Можно использовать клавиатуру для выбора ответов и навигации.. \n\n Какая стрижка будет?",
-                        reply_markup=markup)
+                         reply_markup=markup)
 
 
 @dp.message_handler(lambda message: message.text not in ["Муж", "Женский", "Не знаю"], state=Form.gender)
@@ -143,6 +151,40 @@ async def process_gender(message: types.Message, state: FSMContext):
         # Finish conversation
     await state.finish()
 
+
+class Nav(StatesGroup):
+    S1 = State()  # Will be represented in storage as 'Form:name'
+    S2 = State()  # Will be represented in storage as 'Form:age'
+    S3 = State()  # Will be represented in storage as 'Form:gender'
+
+
+btn_next = types.InlineKeyboardButton('След', callback_data="next")
+btn_lust = types.InlineKeyboardButton('Назад', callback_data="last")
+
+
+@dp.message_handler(commands='nav')
+async def nav(message: types.Message):
+    nav = types.InlineKeyboardMarkup().add(btn_next)
+    answer1 = await message.answer("Первое сообщение.!\n\nНажми далее чтоб получить следующее сообщение",
+                                   reply_markup=nav)
+    print('answer1', answer1)
+
+    # await Nav.S1.set()
+
+
+@dp.callback_query_handler(text_contains="next")
+async def buying_pear(callback: CallbackQuery):
+    nav2 = types.InlineKeyboardMarkup(resize_keyboard=True).add(btn_lust, btn_next)
+
+    await callback.message.edit_text("Второе сообщение.!\n\nНажми далее чтоб получить следующее сообщение",
+                             reply_markup=nav2)
+
+@dp.callback_query_handler(text_contains="lust")
+async def buying_pear(callback: CallbackQuery):
+    nav2 = types.InlineKeyboardMarkup(resize_keyboard=True).add(btn_lust, btn_next)
+
+    await callback.message.edit_text("Первое сообщение.!\n\nНажми далее чтоб получить следующее сообщение",
+                             reply_markup=nav2)
 
 if __name__ == '__main__':
     executor.start_polling(dp, skip_updates=True)
