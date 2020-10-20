@@ -2,28 +2,20 @@ import logging
 
 import aiogram.utils.markdown as md
 from aiogram import Bot, Dispatcher, types
-from aiogram.bot import api
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher.filters.state import State, StatesGroup
-from aiogram.types import ParseMode, CallbackQuery
+from aiogram.types import ParseMode
 from aiogram.utils import executor
 
 logging.basicConfig(level=logging.INFO)
 
 # конфиг
-API_TOKEN = '997719198:AAHzfPmw4AGgi3SkfCAHTFSO3jyejEmJ9UQ'
-admin_id = 617953383
-bot_id = 997719198
-
-# прокси
-patched_url = 'https://telegg.ru/orig/bot{token}/{method}'
-setattr(api, 'API_URL', patched_url)
+API_TOKEN = '1038341676:AAFoKRLUjvXc_PMPxA-ETIqtRmPs89w_dl0'
 
 bot = Bot(token=API_TOKEN)
 
-# For example use simple MemoryStorage for Dispatcher.
 storage = MemoryStorage()
 dp = Dispatcher(bot, storage=storage)
 
@@ -37,9 +29,6 @@ class Form(StatesGroup):
 
 @dp.message_handler(commands='start')
 async def cmd_start(message: types.Message):
-    """
-    Conversation's entry point
-    """
     # Set state
     await Form.name.set()
 
@@ -47,13 +36,9 @@ async def cmd_start(message: types.Message):
         "Покажем работу бота на примере Парикмахерского салона... Бот начинает вести диалог\n\nПривет! Как Вас зовут?")
 
 
-# You can use state '*' if you need to handle all states
 @dp.message_handler(state='*', commands='cancel')
 @dp.message_handler(Text(equals='cancel', ignore_case=True), state='*')
 async def cancel_handler(message: types.Message, state: FSMContext):
-    """
-    Allow user to cancel any action
-    """
     current_state = await state.get_state()
     if current_state is None:
         return
@@ -67,9 +52,6 @@ async def cancel_handler(message: types.Message, state: FSMContext):
 
 @dp.message_handler(state=Form.name)
 async def process_name(message: types.Message, state: FSMContext):
-    """
-    Process user name
-    """
     async with state.proxy() as data:
         data['name'] = message.text
 
@@ -80,9 +62,6 @@ async def process_name(message: types.Message, state: FSMContext):
 # Check age. Age gotta be digit
 @dp.message_handler(lambda message: not message.text.isdigit(), state=Form.age)
 async def process_age_invalid(message: types.Message):
-    """
-    If age is invalid
-    """
     return await message.answer("Должно быть число.\nСколько вам лет? (введите цифры)")
 
 
@@ -103,9 +82,6 @@ async def process_age(message: types.Message, state: FSMContext):
 
 @dp.message_handler(lambda message: message.text not in ["Муж", "Женский", "Не знаю"], state=Form.gender)
 async def process_gender_invalid(message: types.Message):
-    """
-    In this example gender has to be one of: Male, Female, Other.
-    """
     return await message.reply("Пол не введен. Выберите ваш пол пожалуйста.")
 
 
